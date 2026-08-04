@@ -1,29 +1,20 @@
-# PharmFlow v1.3 — 관리자/직원 권한판
+# PharmFlow v1.4
 
-약국 주문 엑셀을 도매별 메시지와 엑셀로 변환하고, 까는약·품절·주문이력·거래처를 관리하는 React + Vite 웹앱입니다.
+우리 약국용 주문·품절 관리 웹앱입니다.
 
-## 이번 업데이트
+## 변경사항
+- 로그인 화면에서 공개 회원가입 제거
+- 관리자가 `직원 관리`에서 직원 이메일·이름·임시 비밀번호를 입력해 계정 생성
+- 생성된 직원은 즉시 사용 가능
+- 직원은 거래처와 설정을 조회만 가능
 
-- 관리자 / 직원 권한 구분
-- 신규 회원가입 계정은 관리자 승인 전 사용 불가
-- 직원은 주문, 까는약, 확인필요, 품절, 주문이력 사용 가능
-- 직원은 거래처와 메시지 설정을 조회만 가능
-- 관리자는 거래처·설정 수정 가능
-- 관리자 전용 직원 관리 화면
-- 관리자 전용 활동 로그
+## Netlify 환경변수
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_PUBLISHABLE_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY` (Functions 전용, 절대 `VITE_` 접두어를 붙이지 마세요)
 
-## 기존 Supabase 프로젝트 업데이트
+## Supabase 설정
+Authentication > Sign In / Providers > Email에서 `Allow new users to sign up`을 끄세요.
 
-Supabase SQL Editor에서 `upgrade_admin_roles.sql`을 한 번 실행합니다.
-
-- 기존 주문·품절·거래처 데이터는 삭제되지 않습니다.
-- 가장 먼저 가입한 계정이 최초 관리자로 지정됩니다.
-- 다른 계정은 승인 대기 상태가 됩니다.
-
-## GitHub 업데이트
-
-이 폴더 안의 파일과 `src` 폴더를 GitHub 저장소 최상위에 업로드하여 기존 파일을 교체하고 Commit합니다. Netlify가 자동 재배포합니다.
-
-## 신규 Supabase 프로젝트
-
-처음부터 설치하는 경우 `supabase_setup.sql` 전체를 실행합니다.
+## 보안
+`SUPABASE_SERVICE_ROLE_KEY`는 브라우저 코드에 포함되지 않고 Netlify Function에서만 사용됩니다.

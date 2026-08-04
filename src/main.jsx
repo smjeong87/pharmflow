@@ -67,20 +67,19 @@ function parseWorkbook(arrayBuffer){
 
 function Login(){
   const [email,setEmail]=useState(''); const [password,setPassword]=useState(''); const [msg,setMsg]=useState(''); const [busy,setBusy]=useState(false);
-  async function act(type){
+  async function login(){
     if(!supabase){ setMsg('Netlify 환경변수가 설정되지 않았습니다.'); return; }
     setBusy(true); setMsg('');
-    const result=type==='login'
-      ? await supabase.auth.signInWithPassword({email,password})
-      : await supabase.auth.signUp({email,password});
+    const result=await supabase.auth.signInWithPassword({email,password});
     setBusy(false);
-    setMsg(result.error ? result.error.message : type==='login' ? '로그인되었습니다.' : '회원가입되었습니다. 관리자의 승인 후 사용할 수 있습니다.');
+    setMsg(result.error ? result.error.message : '로그인되었습니다.');
   }
   return <div className="login"><div className="loginbox">
     <h1>PharmFlow</h1><p className="muted">약국 주문·품절 관리</p>
-    <label className="label">이메일</label><input className="input" value={email} onChange={e=>setEmail(e.target.value)} type="email" />
-    <div style={{height:12}}/><label className="label">비밀번호</label><input className="input" value={password} onChange={e=>setPassword(e.target.value)} type="password" />
-    <div style={{height:14}}/><div className="row"><button className="btn" disabled={busy} onClick={()=>act('login')}>로그인</button><button className="btn secondary" disabled={busy} onClick={()=>act('signup')}>회원가입</button></div>
+    <label className="label">이메일</label><input className="input" value={email} onChange={e=>setEmail(e.target.value)} type="email" autoComplete="username" />
+    <div style={{height:12}}/><label className="label">비밀번호</label><input className="input" value={password} onChange={e=>setPassword(e.target.value)} type="password" autoComplete="current-password" onKeyDown={e=>e.key==='Enter'&&login()} />
+    <div style={{height:14}}/><button className="btn" disabled={busy} onClick={login}>로그인</button>
+    <p className="muted" style={{marginTop:14}}>직원 계정은 관리자가 직원 관리 화면에서 생성합니다.</p>
     {msg && <p className={msg.includes('되었습니다')?'success':'error'}>{msg}</p>}
   </div></div>;
 }
@@ -250,17 +249,43 @@ function SettingsView({settings,setSettings,saveSettings,readOnly}){
 
 function StaffManagement({currentUserId,audit,setNotice}){
   const [rows,setRows]=useState([]); const [busy,setBusy]=useState(false);
+  const [form,setForm]=useState({email:'',display_name:'',password:''});
   async function load(){ setBusy(true); const {data,error}=await supabase.from('staff_profiles').select('*').order('created_at'); setBusy(false); if(error)setNotice(error.message); else setRows(data||[]); }
   useEffect(()=>{load();},[]);
+  async function createStaff(){
+    if(!form.email.trim() || form.password.length<8){ setNotice('이메일과 8자 이상의 임시 비밀번호를 입력하세요.'); return; }
+    setBusy(true);
+    const {data:{session}}=await supabase.auth.getSession();
+    try{
+      const response=await fetch('/.netlify/functions/create-staff',{
+        method:'POST',
+        headers:{'Content-Type':'application/json',Authorization:`Bearer ${session?.access_token||''}`},
+        body:JSON.stringify(form)
+      });
+      const result=await response.json();
+      if(!response.ok) throw new Error(result.error||'직원 계정 생성에 실패했습니다.');
+      setNotice(`${form.email} 직원 계정을 생성했습니다.`);
+      setForm({email:'',display_name:'',password:''});
+      await audit('직원 계정 생성','staff',form.email,{display_name:form.display_name});
+      load();
+    }catch(error){ setNotice(error.message); }
+    finally{ setBusy(false); }
+  }
   async function updateStaff(row,changes){
     if(row.id===currentUserId && (changes.role==='employee' || changes.is_active===false)){ setNotice('현재 로그인한 관리자 계정은 직접 권한을 낮추거나 비활성화할 수 없습니다.'); return; }
     const {error}=await supabase.from('staff_profiles').update({...changes,updated_at:new Date().toISOString()}).eq('id',row.id);
     if(error){setNotice(error.message);return;}
     await audit('직원 권한 변경','staff',row.email,changes); setNotice('직원 권한을 변경했습니다.'); load();
   }
-  return <div className="card"><div className="row between"><div><h2>직원 관리</h2><p className="muted">직원이 먼저 사이트에서 회원가입하면 아래에 승인 대기 계정으로 나타납니다.</p></div><button className="btn secondary" onClick={load} disabled={busy}>새로고침</button></div>
-    <div className="tablewrap"><table className="table"><thead><tr><th>이메일</th><th>이름</th><th>권한</th><th>상태</th><th>가입일</th><th>관리</th></tr></thead><tbody>{rows.map(r=><tr key={r.id}><td>{r.email}</td><td>{r.display_name||'-'}</td><td><span className={`badge ${r.role==='admin'?'admin':''}`}>{r.role==='admin'?'관리자':'직원'}</span></td><td><span className={`badge ${r.is_active?'ok':'warn'}`}>{r.is_active?'승인':'승인 대기'}</span></td><td>{formatDateTime(r.created_at)}</td><td><div className="actions"><button className="btn small" disabled={r.is_active} onClick={()=>updateStaff(r,{is_active:true})}>승인</button><button className="btn small secondary" disabled={!r.is_active||r.id===currentUserId} onClick={()=>updateStaff(r,{is_active:false})}>사용 중지</button><button className="btn small secondary" disabled={r.role==='admin'} onClick={()=>updateStaff(r,{role:'admin',is_active:true})}>관리자로</button><button className="btn small secondary" disabled={r.role==='employee'||r.id===currentUserId} onClick={()=>updateStaff(r,{role:'employee'})}>직원으로</button></div></td></tr>)}</tbody></table></div>
-  </div>;
+  return <><div className="card"><h2>직원 계정 생성</h2><p className="muted">직원은 회원가입하지 않습니다. 관리자가 계정을 만들고 임시 비밀번호를 전달합니다.</p>
+    <div className="grid">
+      <Field label="이메일"><input className="input" type="email" value={form.email} onChange={e=>setForm({...form,email:e.target.value})}/></Field>
+      <Field label="직원 이름"><input className="input" value={form.display_name} onChange={e=>setForm({...form,display_name:e.target.value})}/></Field>
+      <Field label="임시 비밀번호"><input className="input" type="password" value={form.password} onChange={e=>setForm({...form,password:e.target.value})} placeholder="8자 이상"/></Field>
+    </div><button className="btn" disabled={busy} onClick={createStaff}>직원 계정 만들기</button></div>
+    <div className="card"><div className="row between"><div><h2>직원 관리</h2><p className="muted">직원 계정의 사용 여부와 권한을 관리합니다.</p></div><button className="btn secondary" onClick={load} disabled={busy}>새로고침</button></div>
+    <div className="tablewrap"><table className="table"><thead><tr><th>이메일</th><th>이름</th><th>권한</th><th>상태</th><th>생성일</th><th>관리</th></tr></thead><tbody>{rows.map(r=><tr key={r.id}><td>{r.email}</td><td>{r.display_name||'-'}</td><td><span className={`badge ${r.role==='admin'?'admin':''}`}>{r.role==='admin'?'관리자':'직원'}</span></td><td><span className={`badge ${r.is_active?'ok':'warn'}`}>{r.is_active?'사용 중':'사용 중지'}</span></td><td>{formatDateTime(r.created_at)}</td><td><div className="actions"><button className="btn small" disabled={r.is_active} onClick={()=>updateStaff(r,{is_active:true})}>사용</button><button className="btn small secondary" disabled={!r.is_active||r.id===currentUserId} onClick={()=>updateStaff(r,{is_active:false})}>사용 중지</button><button className="btn small secondary" disabled={r.role==='admin'} onClick={()=>updateStaff(r,{role:'admin',is_active:true})}>관리자로</button><button className="btn small secondary" disabled={r.role==='employee'||r.id===currentUserId} onClick={()=>updateStaff(r,{role:'employee'})}>직원으로</button></div></td></tr>)}</tbody></table></div>
+  </div></>;
 }
 
 function AuditLogView({setNotice}){
