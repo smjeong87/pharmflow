@@ -8,11 +8,15 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 const supabase = SUPABASE_URL && SUPABASE_KEY ? createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
-const VENDORS = ['건화','하이스트','하은','호림','복산','지오영','백제','명인','인천','복시','고가'];
-const CODE_MAP = { A:'건화', 건:'건화', 하이:'하이스트', 하:'하은', 호:'호림', 복:'복산', 영:'지오영', B:'백제', M:'명인', 인:'인천', 고가:'고가' };
+const VENDORS = ['건화','하이스트','하은','호림','복산','지오영','백제','명인','인천','JC','복시','고가'];
+const CODE_MAP = { A:'건화', 건:'건화', 하이:'하이스트', 하:'하은', 호:'호림', 복:'복산', 영:'지오영', B:'백제', M:'명인', 인:'인천', JC:'JC', 고가:'고가' };
 
 function cleanName(name){ return String(name ?? '').replace(/\s*\([^)]*\)\s*$/g,'').replace(/\s+/g,' ').trim(); }
-function vendorFor(code){ return CODE_MAP[String(code ?? '').trim()] || '복시'; }
+function vendorFor(code){
+  const raw=String(code ?? '').trim();
+  const normalized=/^[a-z]+$/i.test(raw) ? raw.toUpperCase() : raw;
+  return CODE_MAP[normalized] || '복시';
+}
 function validQty(q){ const s=String(q??'').trim(); return !!s && (/^\*?\d+(?:\.\d+)?$/.test(s) || /^\d+(?:\.\d+)?\*\d+(?:\.\d+)?$/.test(s)); }
 function todayText(){ const d=new Date(); return `${d.getMonth()+1}/${d.getDate()}`; }
 function isoDate(){ return new Date().toISOString().slice(0,10); }

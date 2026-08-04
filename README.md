@@ -1,4 +1,4 @@
-# PharmFlow v1.4
+# PharmFlow v1.4.1
 
 우리 약국용 주문·품절 관리 웹앱입니다.
 
@@ -18,3 +18,8 @@ Authentication > Sign In / Providers > Email에서 `Allow new users to sign up`�
 
 ## 보안
 `SUPABASE_SERVICE_ROLE_KEY`는 브라우저 코드에 포함되지 않고 Netlify Function에서만 사용됩니다.
+
+
+## v1.4.1
+- 주문처 코드 `JC`를 별도 도매 `JC`로 분류합니다.
+- `JC`, `jc`, `Jc` 등 영문 대소문자를 구분하지 않습니다.
