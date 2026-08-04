@@ -1,45 +1,29 @@
-# PharmFlow
+# PharmFlow v1.3 — 관리자/직원 권한판
 
-약국 주문 엑셀을 도매별 메시지와 엑셀로 변환하고, 까는약·품절·주문이력·거래처 정보를 관리하는 React + Vite 웹앱입니다.
+약국 주문 엑셀을 도매별 메시지와 엑셀로 변환하고, 까는약·품절·주문이력·거래처를 관리하는 React + Vite 웹앱입니다.
 
-## 1. Supabase
+## 이번 업데이트
 
-새 Supabase 프로젝트의 SQL Editor에서 `supabase_setup.sql`을 한 번 실행합니다.
+- 관리자 / 직원 권한 구분
+- 신규 회원가입 계정은 관리자 승인 전 사용 불가
+- 직원은 주문, 까는약, 확인필요, 품절, 주문이력 사용 가능
+- 직원은 거래처와 메시지 설정을 조회만 가능
+- 관리자는 거래처·설정 수정 가능
+- 관리자 전용 직원 관리 화면
+- 관리자 전용 활동 로그
 
-Authentication 이메일 로그인은 테스트 단계에서 `Confirm email`을 끄거나, 관리자가 사용자를 생성할 때 이메일 확인 처리합니다.
+## 기존 Supabase 프로젝트 업데이트
 
-## 2. GitHub 업로드
+Supabase SQL Editor에서 `upgrade_admin_roles.sql`을 한 번 실행합니다.
 
-이 폴더 안의 파일과 `src` 폴더를 저장소 최상위에 업로드합니다. ZIP 파일 자체를 올리지 않습니다.
+- 기존 주문·품절·거래처 데이터는 삭제되지 않습니다.
+- 가장 먼저 가입한 계정이 최초 관리자로 지정됩니다.
+- 다른 계정은 승인 대기 상태가 됩니다.
 
-## 3. Netlify
+## GitHub 업데이트
 
-GitHub 저장소를 Import한 뒤 아래 설정을 사용합니다.
+이 폴더 안의 파일과 `src` 폴더를 GitHub 저장소 최상위에 업로드하여 기존 파일을 교체하고 Commit합니다. Netlify가 자동 재배포합니다.
 
-- Branch: `main`
-- Base directory: 비움
-- Build command: `npm run build`
-- Publish directory: `dist`
-- Functions directory: 비움
+## 신규 Supabase 프로젝트
 
-Environment variables:
-
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_PUBLISHABLE_KEY`
-
-환경변수를 저장한 뒤 Deploy합니다.
-
-## 기능
-
-- 이메일 회원가입·로그인
-- 주문 엑셀 드래그앤드롭
-- 별도주문: B열 주문처, C열 품목, D열 수량
-- 복시: C열 예외 주문처, D열 품목, E열 수량
-- 코드 분류: A/건=건화, 하이=하이스트, 하=하은, 호=호림, 복=복산, 영=지오영, B=백제, M=명인, 인=인천, 고가=고가, 나머지=복시
-- 품목명 끝의 괄호 내용 제거
-- 도매별 메시지·엑셀, 전체 엑셀
-- 까는약 별도 추출
-- 중복·수량 이상·품절 주문 확인
-- 상시 품절목록
-- 날짜별 주문이력
-- 거래처 담당자 정보 공유
+처음부터 설치하는 경우 `supabase_setup.sql` 전체를 실행합니다.
