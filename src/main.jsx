@@ -8,14 +8,45 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 const supabase = SUPABASE_URL && SUPABASE_KEY ? createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
-const VENDORS = ['건화','하이스트','하은','호림','복산','지오영','백제','명인','인천','JC','복시','고가'];
-const CODE_MAP = { A:'건화', 건:'건화', 하이:'하이스트', 하:'하은', 호:'호림', 복:'복산', 영:'지오영', B:'백제', M:'명인', 인:'인천', JC:'JC', 고가:'고가' };
+const VENDORS = [
+  '건화','고가','따로','따로 희귀','명인','백제','복산','지오영','지오팜',
+  '하은','하이스트','한미','호림','JC','인천','복시'
+];
+
+// 2026 주문서 표준 거래처명과 과거 약칭을 함께 지원합니다.
+// 한 셀에 거래처가 둘 이상 적힌 경우 첫 번째 거래처를 우선합니다.
+const CODE_MAP = {
+  '건화':'건화', '건':'건화', 'A':'건화',
+  '고가':'고가',
+  '따로':'따로', '따로 희귀':'따로 희귀',
+  '명인':'명인', 'M':'명인',
+  '백제':'백제', '백':'백제', 'B':'백제',
+  '복산':'복산', '복':'복산',
+  '지오영':'지오영', '영':'지오영',
+  '지오팜':'지오팜', '팜':'지오팜',
+  '하은':'하은', '하':'하은',
+  '하이':'하이스트', '하이스트':'하이스트',
+  '한미':'한미', '한미H':'한미', '한미h':'한미',
+  '호림':'호림', '호':'호림',
+  'JC':'JC', 'jc':'JC',
+  '인천':'인천', '인':'인천',
+  '복시':'복시'
+};
 
 function cleanName(name){ return String(name ?? '').replace(/\s*\([^)]*\)\s*$/g,'').replace(/\s+/g,' ').trim(); }
+function firstVendorToken(value){
+  return String(value ?? '')
+    .trim()
+    .split(/\s*[,/·|]\s*|\r?\n/)
+    .map(x=>x.trim())
+    .find(Boolean) || '';
+}
 function vendorFor(code){
-  const raw=String(code ?? '').trim();
-  const normalized=/^[a-z]+$/i.test(raw) ? raw.toUpperCase() : raw;
-  return CODE_MAP[normalized] || '복시';
+  const raw=firstVendorToken(code);
+  if(!raw) return '복시';
+  if(CODE_MAP[raw]) return CODE_MAP[raw];
+  const upper=raw.toUpperCase();
+  return CODE_MAP[upper] || '복시';
 }
 function validQty(q){ const s=String(q??'').trim(); return !!s && (/^\*?\d+(?:\.\d+)?$/.test(s) || /^\d+(?:\.\d+)?\*\d+(?:\.\d+)?$/.test(s)); }
 function todayText(){ const d=new Date(); return `${d.getMonth()+1}/${d.getDate()}`; }

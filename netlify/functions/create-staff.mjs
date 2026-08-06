@@ -1,9 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 
-const json = (statusCode, body) => ({
-  statusCode,
+const json = (status, body) => new Response(JSON.stringify(body), {
+  status,
   headers: { 'Content-Type': 'application/json; charset=utf-8' },
-  body: JSON.stringify(body),
 });
 
 export default async (request) => {
