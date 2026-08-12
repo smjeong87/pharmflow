@@ -195,7 +195,8 @@ function App(){
   }
   async function saveContact(vendor,vals){
     if(!isAdmin){setNotice('관리자만 거래처 정보를 변경할 수 있습니다.');return;}
-    const r=await supabase.from('vendor_contacts').upsert({vendor,...vals,updated_by:session.user.id},{onConflict:'vendor'});
+    const payload={vendor,contact_name:vals.contact_name||'',phone:vals.phone||'',order_deadline:vals.order_deadline||'',note:vals.note||'',updated_by:session.user.id,updated_at:new Date().toISOString()};
+    const r=await supabase.from('vendor_contacts').upsert(payload,{onConflict:'vendor'});
     setNotice(r.error?r.error.message:'거래처 정보를 저장했습니다.'); if(!r.error) await audit('거래처 변경','vendor',vendor,vals); loadCloud();
   }
   async function addShortage(form){
@@ -273,9 +274,9 @@ function ContactsView({contacts,saveContact,readOnly}){
   return <><div className={`permission-banner ${readOnly?'readonly':''}`}>{readOnly?'직원 계정은 거래처 정보를 조회만 할 수 있습니다.':'관리자는 거래처 정보를 수정할 수 있습니다.'}</div><div className="grid">{VENDORS.map(v=><ContactCard key={v} vendor={v} data={contacts[v]||{}} saveContact={saveContact} readOnly={readOnly}/>)}</div></>;
 }
 function ContactCard({vendor,data,saveContact,readOnly}){
-  const blank={contact_name:'',phone:'',office_phone:'',website:'',order_method:'카카오톡',order_deadline:'',note:''};
+  const blank={contact_name:'',phone:'',order_deadline:'',note:''};
   const [f,setF]=useState({...blank,...data}); useEffect(()=>setF({...blank,...data}),[data]);
-  const fields={contact_name:'담당자',phone:'휴대전화',office_phone:'사무실 전화',website:'홈페이지',order_method:'주문방법',order_deadline:'주문마감',note:'메모'};
+  const fields={contact_name:'담당자',phone:'휴대전화',order_deadline:'주문마감',note:'메모'};
   return <div className="vendorcard"><h3>{vendor}</h3>{Object.entries(fields).map(([k,l])=><div key={k} style={{marginBottom:8}}><label className="label">{l}</label><input className="input" value={f[k]||''} disabled={readOnly} onChange={e=>setF({...f,[k]:e.target.value})}/></div>)}{!readOnly&&<button className="btn small" onClick={()=>saveContact(vendor,f)}>저장</button>}</div>;
 }
 function SettingsView({settings,setSettings,saveSettings,readOnly}){
