@@ -36,3 +36,8 @@ Authentication > Sign In / Providers > Email에서 `Allow new users to sign up`�
 - 거래처가 `복산,지오팜`처럼 둘 이상이면 첫 번째 거래처를 우선합니다.
 - 기존 약칭도 호환됩니다.
 - Netlify Functions 런타임은 Node.js 22로 고정하고 직원 생성 함수는 최신 Response 형식으로 반환합니다.
+
+## v1.5.2 거래처 연락처 최종 단순화
+- vendor_contacts는 거래처/담당자/휴대전화/주문마감/메모만 사용합니다.
+- 기존 vendor_contacts 데이터가 없는 상태를 전제로 `reset_vendor_contacts_v152.sql`을 1회 실행합니다.
+- user_id, updated_by, updated_at, office_phone, website, order_method는 사용하지 않습니다.

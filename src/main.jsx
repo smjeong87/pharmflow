@@ -195,7 +195,7 @@ function App(){
   }
   async function saveContact(vendor,vals){
     if(!isAdmin){setNotice('관리자만 거래처 정보를 변경할 수 있습니다.');return;}
-    const payload={vendor,contact_name:vals.contact_name||'',phone:vals.phone||'',order_deadline:vals.order_deadline||'',note:vals.note||'',updated_by:session.user.id,updated_at:new Date().toISOString()};
+    const payload={vendor,contact_name:vals.contact_name||'',phone:vals.phone||'',order_deadline:vals.order_deadline||'',note:vals.note||''};
     const r=await supabase.from('vendor_contacts').upsert(payload,{onConflict:'vendor'});
     setNotice(r.error?r.error.message:'거래처 정보를 저장했습니다.'); if(!r.error) await audit('거래처 변경','vendor',vendor,vals); loadCloud();
   }
