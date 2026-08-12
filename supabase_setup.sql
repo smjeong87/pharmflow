@@ -12,13 +12,8 @@ create table if not exists public.vendor_contacts (
   vendor text primary key,
   contact_name text not null default '',
   phone text not null default '',
-  office_phone text not null default '',
-  website text not null default '',
-  order_method text not null default '카카오톡',
   order_deadline text not null default '',
-  note text not null default '',
-  updated_by uuid references auth.users(id),
-  updated_at timestamptz not null default now()
+  note text not null default ''
 );
 
 create table if not exists public.shortage_items (

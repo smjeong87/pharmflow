@@ -1,5 +1,5 @@
 ## v1.5.1
-- 거래처 저장 스키마 복구(vendor/updated_by 등)
+- 거래처 저장 스키마를 5개 필드로 단순화
 - 거래처 카드에서 사무실 전화, 홈페이지, 주문방법 제거
 
 # PharmFlow v1.4.1
@@ -39,5 +39,5 @@ Authentication > Sign In / Providers > Email에서 `Allow new users to sign up`�
 
 ## v1.5.2 거래처 연락처 최종 단순화
 - vendor_contacts는 거래처/담당자/휴대전화/주문마감/메모만 사용합니다.
-- 기존 vendor_contacts 데이터가 없는 상태를 전제로 `reset_vendor_contacts_v152.sql`을 1회 실행합니다.
+- 기존 vendor_contacts 데이터가 없는 상태를 전제로 `reset_vendor_contacts_FINAL.sql`을 1회 실행합니다.
 - user_id, updated_by, updated_at, office_phone, website, order_method는 사용하지 않습니다.
